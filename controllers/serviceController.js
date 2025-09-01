@@ -9,11 +9,15 @@ export const createService = catchAsync(async (req, res) => {
     image: req.file ? req.file.path : undefined
   };
   const service = await Service.create(data);
-  res.status(201).json(service);
+  res.status(201).json({
+    success: true,
+    message: "Service created successfully",
+    data: service
+  });
 });
 
 export const getServices = catchAsync(async (req, res) => {
-  const services = await Service.find();
+  const services = await Service.find().sort({ createdAt: -1 });
 
   res.status(200).json({
     success: true,
@@ -22,11 +26,18 @@ export const getServices = catchAsync(async (req, res) => {
   });
 });
 
-
 export const getServiceById = catchAsync(async (req, res) => {
   const service = await Service.findById(req.params.id);
-  if (!service) return res.status(404).json({ message: "Service not found" });
-  res.json(service);
+  if (!service) {
+    return res.status(404).json({
+      success: false,
+      message: "Service not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: service
+  });
 });
 
 export const updateService = catchAsync(async (req, res) => {
@@ -37,15 +48,35 @@ export const updateService = catchAsync(async (req, res) => {
   if (req.file) {
     data.image = req.file.path;
   }
-  const service = await Service.findByIdAndUpdate(req.params.id, data, { new: true });
-  if (!service) return res.status(404).json({ message: "Service not found" });
-  res.json(service);
+  const service = await Service.findByIdAndUpdate(req.params.id, data, {
+    new: true,
+    runValidators: true
+  });
+  if (!service) {
+    return res.status(404).json({
+      success: false,
+      message: "Service not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "Service updated successfully",
+    data: service
+  });
 });
 
 export const deleteService = catchAsync(async (req, res) => {
   const service = await Service.findByIdAndDelete(req.params.id);
-  if (!service) return res.status(404).json({ message: "Service deleted" });
-  res.json({ message: "Service deleted" });
+  if (!service) {
+    return res.status(404).json({
+      success: false,
+      message: "Service not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "Service deleted successfully"
+  });
 });
 
 // ------------------- SUBSERVICES -------------------
@@ -57,18 +88,42 @@ export const createSubService = catchAsync(async (req, res) => {
     doc: req.file ? req.file.path : undefined
   };
   const subService = await SubService.create(data);
-  res.status(201).json(subService);
+  res.status(201).json({
+    success: true,
+    message: "SubService created successfully",
+    data: subService
+  });
 });
 
 export const getSubServices = catchAsync(async (req, res) => {
-  const subServices = await SubService.find().populate("service");
-  res.json(subServices);
+  const { service } = req.query; // Optional filter by service
+
+  const filter = {};
+  if (service) filter.service = service;
+
+  const subServices = await SubService.find(filter)
+    .populate("service", "serviceName")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: subServices.length,
+    data: subServices
+  });
 });
 
 export const getSubServiceById = catchAsync(async (req, res) => {
   const subService = await SubService.findById(req.params.id).populate("service");
-  if (!subService) return res.status(404).json({ message: "SubService not found" });
-  res.json(subService);
+  if (!subService) {
+    return res.status(404).json({
+      success: false,
+      message: "SubService not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: subService
+  });
 });
 
 export const updateSubService = catchAsync(async (req, res) => {
@@ -80,15 +135,35 @@ export const updateSubService = catchAsync(async (req, res) => {
   if (req.file) {
     data.doc = req.file.path;
   }
-  const subService = await SubService.findByIdAndUpdate(req.params.id, data, { new: true }).populate("service");
-  if (!subService) return res.status(404).json({ message: "SubService not found" });
-  res.json(subService);
+  const subService = await SubService.findByIdAndUpdate(req.params.id, data, {
+    new: true,
+    runValidators: true
+  }).populate("service");
+  if (!subService) {
+    return res.status(404).json({
+      success: false,
+      message: "SubService not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "SubService updated successfully",
+    data: subService
+  });
 });
 
 export const deleteSubService = catchAsync(async (req, res) => {
   const subService = await SubService.findByIdAndDelete(req.params.id);
-  if (!subService) return res.status(404).json({ message: "SubService deleted" });
-  res.json({ message: "SubService deleted" });
+  if (!subService) {
+    return res.status(404).json({
+      success: false,
+      message: "SubService not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "SubService deleted successfully"
+  });
 });
 
 // ------------------- TYPES -------------------
@@ -104,18 +179,46 @@ export const createType = catchAsync(async (req, res) => {
     file: req.file ? req.file.path : undefined
   };
   const type = await Type.create(data);
-  res.status(201).json(type);
+  res.status(201).json({
+    success: true,
+    message: "Type created successfully",
+    data: type
+  });
 });
 
 export const getTypes = catchAsync(async (req, res) => {
-  const types = await Type.find().populate("service subService");
-  res.json(types);
+  const { service, subService } = req.query; // Optional filters
+
+  const filter = {};
+  if (service) filter.service = service;
+  if (subService) filter.subService = subService;
+
+  const types = await Type.find(filter)
+    .populate("service", "serviceName")
+    .populate("subService", "fee time")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: types.length,
+    data: types
+  });
 });
 
 export const getTypeById = catchAsync(async (req, res) => {
-  const type = await Type.findById(req.params.id).populate("service subService");
-  if (!type) return res.status(404).json({ message: "Type not found" });
-  res.json(type);
+  const type = await Type.findById(req.params.id)
+    .populate("service")
+    .populate("subService");
+  if (!type) {
+    return res.status(404).json({
+      success: false,
+      message: "Type not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: type
+  });
 });
 
 export const updateType = catchAsync(async (req, res) => {
@@ -131,15 +234,35 @@ export const updateType = catchAsync(async (req, res) => {
   if (req.file) {
     data.file = req.file.path;
   }
-  const type = await Type.findByIdAndUpdate(req.params.id, data, { new: true }).populate("service subService");
-  if (!type) return res.status(404).json({ message: "Type not found" });
-  res.json(type);
+  const type = await Type.findByIdAndUpdate(req.params.id, data, {
+    new: true,
+    runValidators: true
+  }).populate("service subService");
+  if (!type) {
+    return res.status(404).json({
+      success: false,
+      message: "Type not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "Type updated successfully",
+    data: type
+  });
 });
 
 export const deleteType = catchAsync(async (req, res) => {
   const type = await Type.findByIdAndDelete(req.params.id);
-  if (!type) return res.status(404).json({ message: "Type deleted" });
-  res.json({ message: "Type deleted" });
+  if (!type) {
+    return res.status(404).json({
+      success: false,
+      message: "Type not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "Type deleted successfully"
+  });
 });
 
 // ------------------- ASSOCIATES -------------------
@@ -155,18 +278,49 @@ export const createAssociate = catchAsync(async (req, res) => {
     file: req.file ? req.file.path : undefined
   };
   const associate = await Associate.create(data);
-  res.status(201).json(associate);
+  res.status(201).json({
+    success: true,
+    message: "Associate created successfully",
+    data: associate
+  });
 });
 
 export const getAssociates = catchAsync(async (req, res) => {
-  const associates = await Associate.find().populate("service subService type");
-  res.json(associates);
+  const { service, subService, type } = req.query; // Optional filters
+
+  const filter = {};
+  if (service) filter.service = service;
+  if (subService) filter.subService = subService;
+  if (type) filter.type = type;
+
+  const associates = await Associate.find(filter)
+    .populate("service", "serviceName")
+    .populate("subService", "fee time")
+    .populate("type", "type")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: associates.length,
+    data: associates
+  });
 });
 
 export const getAssociateById = catchAsync(async (req, res) => {
-  const associate = await Associate.findById(req.params.id).populate("service subService type");
-  if (!associate) return res.status(404).json({ message: "Associate not found" });
-  res.json(associate);
+  const associate = await Associate.findById(req.params.id)
+    .populate("service")
+    .populate("subService")
+    .populate("type");
+  if (!associate) {
+    return res.status(404).json({
+      success: false,
+      message: "Associate not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: associate
+  });
 });
 
 export const updateAssociate = catchAsync(async (req, res) => {
@@ -182,13 +336,33 @@ export const updateAssociate = catchAsync(async (req, res) => {
   if (req.file) {
     data.file = req.file.path;
   }
-  const associate = await Associate.findByIdAndUpdate(req.params.id, data, { new: true }).populate("service subService type");
-  if (!associate) return res.status(404).json({ message: "Associate not found" });
-  res.json(associate);
+  const associate = await Associate.findByIdAndUpdate(req.params.id, data, {
+    new: true,
+    runValidators: true
+  }).populate("service subService type");
+  if (!associate) {
+    return res.status(404).json({
+      success: false,
+      message: "Associate not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "Associate updated successfully",
+    data: associate
+  });
 });
 
 export const deleteAssociate = catchAsync(async (req, res) => {
   const associate = await Associate.findByIdAndDelete(req.params.id);
-  if (!associate) return res.status(404).json({ message: "Associate deleted" });
-  res.json({ message: "Associate deleted" });
+  if (!associate) {
+    return res.status(404).json({
+      success: false,
+      message: "Associate not found"
+    });
+  }
+  res.status(200).json({
+    success: true,
+    message: "Associate deleted successfully"
+  });
 });
