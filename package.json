@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "App.js",
-"scripts": {
-  "dev": "nodemon App.js",
-  "start": "node App.js"
-},
-
+  "scripts": {
+    "dev": "nodemon App.js",
+    "start": "node App.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ankit8412226/Dhanganga-Backend.git"
@@ -26,7 +25,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
