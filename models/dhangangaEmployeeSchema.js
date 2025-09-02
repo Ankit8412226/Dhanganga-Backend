@@ -36,7 +36,7 @@ const dhangangaEmployeeSchema = new mongoose.Schema(
     employeeId: {
       type: String,
       unique: true,
-      required: true
+
     },
     isActive: {
       type: Boolean,

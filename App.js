@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 
-app.use("/uploads", express.static("uploads"));
+
 
 
 
@@ -37,6 +37,8 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/service", serviceRoutes);
+app.use("/api/uploads", express.static("uploads"));
+
 
 
 
