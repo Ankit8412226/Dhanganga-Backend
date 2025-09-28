@@ -27,16 +27,34 @@ export const getServices = catchAsync(async (req, res) => {
 });
 
 export const getServiceById = catchAsync(async (req, res) => {
-  const service = await Service.findById(req.params.id);
+  const serviceId = req.params.id;
+  const service = await Service.findById(serviceId);
   if (!service) {
     return res.status(404).json({
       success: false,
       message: "Service not found"
     });
   }
+
+  const [subServices, types, associates] = await Promise.all([
+    SubService.find({ service: serviceId }).sort({ createdAt: -1 }),
+    Type.find({ service: serviceId })
+      .populate("subService", "fee time")
+      .sort({ createdAt: -1 }),
+    Associate.find({ service: serviceId })
+      .populate("subService", "fee time")
+      .populate("type", "type")
+      .sort({ createdAt: -1 })
+  ]);
+
   res.status(200).json({
     success: true,
-    data: service
+    data: {
+      service,
+      subServices,
+      types,
+      associates
+    }
   });
 });
 
@@ -83,9 +101,11 @@ export const deleteService = catchAsync(async (req, res) => {
 export const createSubService = catchAsync(async (req, res) => {
   const data = {
     service: req.body.service,
+    subServiceName: req.body.subServiceName,
+    details: req.body.details,
     fee: req.body.fee,
     time: req.body.time,
-    doc: req.file ? req.file.path : undefined
+    image: req.file ? req.file.path : undefined
   };
   const subService = await SubService.create(data);
   res.status(201).json({
@@ -129,11 +149,13 @@ export const getSubServiceById = catchAsync(async (req, res) => {
 export const updateSubService = catchAsync(async (req, res) => {
   const data = {
     service: req.body.service,
+    subServiceName: req.body.subServiceName,
+    details: req.body.details,
     fee: req.body.fee,
     time: req.body.time,
   };
   if (req.file) {
-    data.doc = req.file.path;
+    data.image = req.file.path;
   }
   const subService = await SubService.findByIdAndUpdate(req.params.id, data, {
     new: true,
@@ -176,7 +198,12 @@ export const createType = catchAsync(async (req, res) => {
     amount: req.body.amount,
     bio: req.body.bio,
     time: req.body.time,
-    file: req.file ? req.file.path : undefined
+    file: req.file ? req.file.path : undefined,
+    documents: Array.isArray(req.body.documents)
+      ? req.body.documents
+      : typeof req.body.documents === "string" && req.body.documents.length
+      ? req.body.documents.split(",").map((d) => d.trim()).filter(Boolean)
+      : undefined,
   };
   const type = await Type.create(data);
   res.status(201).json({
@@ -230,6 +257,11 @@ export const updateType = catchAsync(async (req, res) => {
     amount: req.body.amount,
     bio: req.body.bio,
     time: req.body.time,
+    documents: Array.isArray(req.body.documents)
+      ? req.body.documents
+      : typeof req.body.documents === "string" && req.body.documents.length
+      ? req.body.documents.split(",").map((d) => d.trim()).filter(Boolean)
+      : undefined,
   };
   if (req.file) {
     data.file = req.file.path;

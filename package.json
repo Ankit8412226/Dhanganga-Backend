@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon App.js",
-    "start": "node App.js"
+    "start": "node App.js",
+    "seed": "node scripts/seed.js"
   },
   "repository": {
     "type": "git",

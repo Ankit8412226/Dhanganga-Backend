@@ -9,7 +9,7 @@ const typeSchema = new mongoose.Schema(
     amount: { type: Number },
     bio: { type: String },
     time: { type: String },
-    file: { type: String }, // uploaded file path
+    file: { type: String },
   },
   { timestamps: true }
 );
