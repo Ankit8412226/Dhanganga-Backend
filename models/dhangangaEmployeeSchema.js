@@ -30,7 +30,7 @@ const dhangangaEmployeeSchema = new mongoose.Schema(
     },
     department: {
       type: String,
-      enum: ["Operations", "Finance", "HR", "IT", "Marketing", "Customer Service"],
+      enum: ["Operations", "Finance", "HR", "IT", "Marketing", "Customer Service" ,"CEO"],
       default: "Operations"
     },
     employeeId: {
