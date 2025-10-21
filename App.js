@@ -1,5 +1,5 @@
 import cookieParser from "cookie-parser";
-
+import cors from "cors"; // ✅ Import CORS
 import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/db.js";
@@ -9,13 +9,31 @@ import contactRoutes from "./routes/ContactRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 
 dotenv.config();
-
 connectDB();
 
 const app = express();
 
+// ✅ CORS Configuration
+const allowedOrigins = [
+  "https://www.nayesochnayakadam.com",
+  "https://admin-dhanganga-95aa.vercel.app",
+  "http://localhost:3000", // optional, for local testing
+];
 
-
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // ✅ allow cookies and authentication headers
+  })
+);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
